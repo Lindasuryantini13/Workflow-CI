@@ -8,8 +8,6 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import argparse
 
 def main(data_path, experiment_name):
-    mlflow.set_experiment(experiment_name)
-
     print(f"Loading data from {data_path}...")
     df = pd.read_csv(data_path)
     print(f"Data loaded. Shape: {df.shape}")
