@@ -6,8 +6,19 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 import argparse
+import os
 
 def main(data_path, experiment_name):
+    dagshub_token = os.getenv('DAGSHUB_TOKEN')
+    dagshub_user = os.getenv('DAGSHUB_USER', 'lindasuryantini')
+    dagshub_repo = os.getenv('DAGSHUB_REPO', 'my-first-repo')
+
+    if dagshub_token:
+        mlflow.set_tracking_uri(f'https://dagshub.com/{dagshub_user}/{dagshub_repo}.mlflow')
+        os.environ['MLFLOW_TRACKING_USERNAME'] = dagshub_user
+        os.environ['MLFLOW_TRACKING_PASSWORD'] = dagshub_token
+        print(f"MLflow tracking configured to DagsHub: {dagshub_user}/{dagshub_repo}")
+
     print(f"Loading data from {data_path}...")
     df = pd.read_csv(data_path)
     print(f"Data loaded. Shape: {df.shape}")

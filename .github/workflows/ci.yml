@@ -25,6 +25,10 @@ jobs:
           pip install mlflow pandas numpy scikit-learn matplotlib seaborn
 
       - name: Run MLflow Project
+        env:
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          DAGSHUB_USER: lindasuryantini
+          DAGSHUB_REPO: my-first-repo
         run: |
           cd MLProject
           mlflow run . --env-manager=local
