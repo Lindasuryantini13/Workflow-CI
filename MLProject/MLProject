@@ -1,0 +1,10 @@
+name: telco-churn-mlops
+
+python_env: python_env.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_path: {type: string, default: "preprocessed_data.csv"}
+      experiment_name: {type: string, default: "telco-churn-classification"}
+    command: "python modelling.py --data {data_path} --experiment {experiment_name}"

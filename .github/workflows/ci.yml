@@ -1,0 +1,61 @@
+name: MLflow CI Advanced with Docker
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  train-and-build-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mlflow pandas numpy scikit-learn matplotlib seaborn
+
+      - name: Run MLflow Project
+        env:
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          DAGSHUB_USER: lindasuryantini
+          DAGSHUB_REPO: my-first-repo
+        run: |
+          cd MLProject
+          mlflow run . --env-manager=local
+
+      - name: Upload Model Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: mlflow-artifacts
+          path: |
+            MLProject/mlruns/
+            MLProject/*.csv
+          retention-days: 30
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker Image with MLflow
+        run: |
+          cd MLProject
+          mlflow models build-docker -m "runs:/<run-id>/model" -n "${{ secrets.DOCKERHUB_USERNAME }}/mlflow-telco-churn:latest" --enable-mlserver || \
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mlflow-telco-churn:latest .
+
+      - name: Push Docker Image to Docker Hub
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mlflow-telco-churn:latest
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/mlflow-telco-churn:latest ${{ secrets.DOCKERHUB_USERNAME }}/mlflow-telco-churn:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mlflow-telco-churn:${{ github.sha }}
